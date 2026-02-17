@@ -1,0 +1,5 @@
+leads.authz.core.config.SecurityAutoConfig
+leads.authz.core.config.WebMvcAutoConfig
+leads.authz.core.interceptor.AuthorizationInterceptor
+leads.authz.core.security.KeycloakAuthzChecker
+leads.authz.core.config.AuthzClientAutoConfig
