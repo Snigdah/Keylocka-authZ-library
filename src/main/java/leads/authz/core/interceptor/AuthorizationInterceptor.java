@@ -3,6 +3,10 @@ package leads.authz.core.interceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import leads.authz.core.security.KeycloakAuthzChecker;
+import leads.authz.core.security.SecurityMode;
+import leads.authz.core.security.SecurityProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
@@ -13,9 +17,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthorizationInterceptor implements HandlerInterceptor {
 
     private final KeycloakAuthzChecker checker;
+    private final SecurityProperties props;
 
-    public AuthorizationInterceptor(KeycloakAuthzChecker checker) {
+    public AuthorizationInterceptor(KeycloakAuthzChecker checker,
+                                    @Qualifier("appSecurityProperties") SecurityProperties props) {
         this.checker = checker;
+        this.props = props;
     }
 
     @Override
@@ -23,26 +30,45 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        if (!(handler instanceof HandlerMethod hm))
+        SecurityMode mode = props.getMode();
+
+        if (mode == SecurityMode.NONE ||
+                mode == SecurityMode.PREAUTHORIZE) {
             return true;
+        }
 
-        String resource = hm.getMethod().getName();
+        if (!(handler instanceof HandlerMethod hm)) {
+            return true;
+        }
+
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(auth.getPrincipal() instanceof Jwt jwt)) {
+            response.sendError(401);
+            return false;
+        }
+
+        String methodName = hm.getMethod().getName();
         String scope = request.getMethod();
-
-        Jwt jwt = (Jwt) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
 
         boolean permitted =
                 checker.hasPermission(jwt.getTokenValue(),
-                        resource,
-                        scope);
+                        methodName, scope);
+
+        if (!permitted && mode == SecurityMode.MIXED) {
+            // allow controller to try PreAuthorize
+            request.setAttribute("AUTHZ_FAILED", true);
+            return true;
+        }
 
         if (!permitted) {
-            response.sendError(403, "Permission denied");
+            response.sendError(403);
             return false;
         }
+
+        // mark success so PreAuthorize can skip
+        request.setAttribute("AUTHZ_PASSED", true);
 
         return true;
     }
