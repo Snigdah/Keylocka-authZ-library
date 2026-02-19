@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties.class)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final SecurityProperties props;
@@ -40,6 +41,7 @@ public class SecurityConfig {
                     .securityMatcher("/**"); // match all paths
 
             return http.build();
+
         }
 
         http.authorizeHttpRequests(auth -> {
