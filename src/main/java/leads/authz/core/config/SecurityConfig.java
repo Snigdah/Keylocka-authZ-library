@@ -1,5 +1,6 @@
 package leads.authz.core.config;
 
+import leads.authz.core.filter.PolicyAuthorizationFilter;
 import leads.authz.core.security.SecurityMode;
 import leads.authz.core.security.SecurityProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,7 +12,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties.class)
@@ -19,10 +22,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final SecurityProperties props;
+    private final PolicyAuthorizationFilter policyFilter;
+
 
     public SecurityConfig(
-            @Qualifier("appSecurityProperties")  SecurityProperties props) {
+            @Qualifier("appSecurityProperties")  SecurityProperties props,
+            PolicyAuthorizationFilter policyFilter) {
         this.props = props;
+        this.policyFilter = policyFilter;
     }
 
     @Bean
@@ -61,6 +68,14 @@ public class SecurityConfig {
                         jwt.jwtAuthenticationConverter(converter)
                 )
         );
+
+        if (props.getMode() == SecurityMode.POLICY) {
+
+            http.addFilterAfter(
+                    policyFilter,
+                    BearerTokenAuthenticationFilter.class
+            );
+        }
 
         return http.build();
     }

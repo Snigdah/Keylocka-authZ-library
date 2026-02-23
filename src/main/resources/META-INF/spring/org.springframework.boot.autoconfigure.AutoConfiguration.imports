@@ -5,3 +5,4 @@ leads.authz.core.security.KeycloakAuthzChecker
 leads.authz.core.config.AuthzClientAutoConfig
 leads.authz.core.security.SecurityProperties
 leads.authz.core.config.SecurityConfig
+leads.authz.core.config.AuthorizationMappingConfig
