@@ -16,6 +16,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 public class PolicyAuthorizationFilter extends OncePerRequestFilter {
 
@@ -27,9 +28,7 @@ public class PolicyAuthorizationFilter extends OncePerRequestFilter {
     public PolicyAuthorizationFilter(
             KeycloakAuthzChecker checker,
             AuthorizationMappingConfig mappingConfig,
-            @Qualifier("appSecurityProperties")
-            SecurityProperties props) {
-
+            @Qualifier("appSecurityProperties") SecurityProperties props) {
         this.checker = checker;
         this.mappingConfig = mappingConfig;
         this.props = props;
@@ -54,10 +53,9 @@ public class PolicyAuthorizationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
+        // Match mapping: path must match, and either no methods defined OR current method is in the list
         var mapping = mappingConfig.getMappings().stream()
-                .filter(m ->
-                        matcher.match(m.getPath(), path)
-                                && method.equalsIgnoreCase(m.getMethod()))
+                .filter(m -> matcher.match(m.getPath(), path) && (m.getMethod() == null || m.getMethod().isEmpty() || m.getMethod().equalsIgnoreCase(method)))
                 .findFirst()
                 .orElse(null);
 
@@ -74,14 +72,10 @@ public class PolicyAuthorizationFilter extends OncePerRequestFilter {
         }
 
         String token = jwtAuth.getToken().getTokenValue();
-
         boolean allowed = false;
 
         for (String scope : mapping.getScopes().split(",")) {
-            if (checker.hasPermission(
-                    token,
-                    mapping.getResource(),
-                    scope.trim())) {
+            if (checker.hasPermission(token, mapping.getResource(), scope.trim())) {
                 allowed = true;
                 break;
             }

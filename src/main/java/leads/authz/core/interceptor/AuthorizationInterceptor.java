@@ -87,10 +87,15 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
      */
     private boolean isPermitAll(HttpServletRequest request) {
         String path = request.getRequestURI();
+        String method = request.getMethod();
 
         return props.getPermitAll() != null &&
                 props.getPermitAll()
                         .stream()
-                        .anyMatch(p -> pathMatcher.match(p, path));
+                        .anyMatch(entry ->
+                                pathMatcher.match(entry.getPath(), path) &&
+                                        (entry.isAllMethods() || entry.getMethods().stream()
+                                                .anyMatch(m -> m.equalsIgnoreCase(method)))
+                        );
     }
 }

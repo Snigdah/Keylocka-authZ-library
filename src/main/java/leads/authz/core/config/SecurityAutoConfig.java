@@ -6,6 +6,7 @@ import leads.authz.core.security.KeycloakRoleConverter;
 import leads.authz.core.security.SecurityProperties;
 import org.keycloak.authorization.client.AuthzClient;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,7 @@ public class SecurityAutoConfig {
 
     @Bean
     @ConditionalOnProperty(name = "app.security.mode", havingValue = "POLICY")
+    @ConditionalOnMissingBean(AuthzClient.class)
     public AuthzClient authzClient() {
         return AuthzClient.create();
     }
