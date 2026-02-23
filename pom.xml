@@ -22,7 +22,7 @@
 	</parent>
 	<groupId>com.leads</groupId>
 	<artifactId>authz</artifactId>
-	<version>0.0.13-SNAPSHOT</version>
+	<version>0.0.14-SNAPSHOT</version>
 	<name>core</name>
 	<description>Authz for Services</description>
 	<url/>

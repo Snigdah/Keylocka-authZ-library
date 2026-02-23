@@ -6,3 +6,4 @@ leads.authz.core.config.AuthzClientAutoConfig
 leads.authz.core.security.SecurityProperties
 leads.authz.core.config.SecurityConfig
 leads.authz.core.config.AuthorizationMappingConfig
+leads.authz.core.service.ClientTokenService
