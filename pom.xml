@@ -22,7 +22,7 @@
 	</parent>
 	<groupId>com.leads</groupId>
 	<artifactId>authz</artifactId>
-	<version>0.0.14-SNAPSHOT</version>
+	<version>0.0.15-SNAPSHOT</version>
 	<name>core</name>
 	<description>Authz for Services</description>
 	<url/>
@@ -30,7 +30,11 @@
 		<license/>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>K M Farhat Snigdah</name>
+			<email>farhatsnigdah1392@gmail.com</email>
+			<organization>LEADS Corporation Limited</organization>
+		</developer>
 	</developers>
 	<scm>
 		<connection/>
