@@ -67,4 +67,9 @@ public class ClientTokenService {
         }
         return cache.getToken();
     }
+
+    public synchronized String getNewClientToken() {
+        refreshToken();
+        return cache.getToken();
+    }
 }
