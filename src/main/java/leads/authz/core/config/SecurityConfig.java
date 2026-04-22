@@ -1,8 +1,10 @@
 package leads.authz.core.config;
 
+import leads.authz.core.filter.OptionalBearerJwtAuthenticationFilter;
 import leads.authz.core.filter.PolicyAuthorizationFilter;
 import leads.authz.core.security.SecurityMode;
 import leads.authz.core.security.SecurityProperties;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +14,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties.class)
@@ -35,10 +40,15 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationConverter converter) throws Exception {
+            JwtAuthenticationConverter converter,
+            ObjectProvider<JwtDecoder> jwtDecoderProvider) throws Exception {
 
         if (props.getMode() == SecurityMode.NONE) {
             http
+                    .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .addFilterBefore(
+                            new OptionalBearerJwtAuthenticationFilter(jwtDecoderProvider, converter),
+                            UsernamePasswordAuthenticationFilter.class)
                     .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                     .csrf(AbstractHttpConfigurer::disable)
                     .securityMatcher("/**");
